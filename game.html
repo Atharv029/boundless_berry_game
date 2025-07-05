@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boundless Berry Flip</title>
+
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f2f6ff 0%, #e8f0ff 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Falling Berry Animation */
+        .falling-berry {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            top: -40px;
+            animation: fall 4s linear infinite;
+            z-index: 1;
+            background: none;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .falling-berry::before {
+            content: '';
+            width: 25px;
+            height: 25px;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGVsbGlwc2UgY3g9IjUwIiBjeT0iNjAiIHJ4PSIzMCIgcnk9IjM1IiBmaWxsPSIjRkYzMzMzIi8+PGVsbGlwc2UgY3g9IjQ1IiBjeT0iNTUiIHJ4PSI0IiByeT0iNCIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC44Ii8+PGVsbGlwc2UgY3g9IjU1IiBjeT0iNjIiIHJ4PSIzIiByeT0iMyIgZmlsbD0iI0ZGRkZGRiIgb3BhY2l0eT0iMC44Ii8+PGVsbGlwc2UgY3g9IjQ4IiBjeT0iNjgiIHJ4PSIyLjUiIHJ5PSIyLjUiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuOCIvPjxlbGxpcHNlIGN4PSI1OCIgY3k9IjUwIiByeD0iMiIgcnk9IjIiIGZpbGw9IiNGRkZGRkYiIG9wYWNpdHk9IjAuOCIvPjxwYXRoIGQ9Ik00MCAzNUM0MCAzMCA0NSAyNSA1MCAyNUM1NSAyNSA2MCAzMCA2MCAzNUw1NSAzNUw1MCAyOEw0NSAzNUw0MCAzNVoiIGZpbGw9IiMzM0NDMzMiLz48L3N2Zz4=');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-40px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Game Container */
+        .game-container {
+            position: relative;
+            z-index: 10;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        /* Header */
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .score {
+            font-size: 1.5em;
+            color: #e74c3c;
+            font-weight: bold;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        
+        .stats {
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #34495e;
+        }
+        
+        .stats span {
+            background: rgba(255,255,255,0.7);
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 0 5px;
+        }
+        
+        /* Game Board */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+        
+        /* Card Styles */
+        .card {
+            aspect-ratio: 1;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card.wrong {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+        
+        .card-back {
+            background: #ff4b6e;
+            background: linear-gradient(135deg, #ff4b6e 0%, #e63946 100%);
+        }
+        
+        .card-front {
+            transform: rotateY(180deg);
+            background: white;
+            border: 3px solid #ff4b6e;
+        }
+        
+        .card-back-logo {
+            width: 60%;
+            height: 60%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: white;
+        }
+        
+        .card-image {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        
+        .emoji-display {
+            font-size: 3em;
+            user-select: none;
+        }
+        
+        /* Credits */
+        .credits {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-size: 0.9em;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+        }
+        
+        .credits img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .credits a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .credits a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #27ae60;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: toastPop 0.5s ease-out;
+        }
+        
+        .toast.reshuffle {
+            background: #f39c12;
+            animation: toastShake 0.5s ease-out;
+        }
+        
+        .toast.warning {
+            background: #e74c3c;
+            animation: toastShake 0.5s ease-out;
+        }
+        
+        @keyframes toastPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes toastShake {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            25% {
+                transform: translate(-50%, -50%) scale(1.1) rotate(-5deg);
+            }
+            75% {
+                transform: translate(-50%, -50%) scale(1.1) rotate(5deg);
+            }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-board {
+                gap: 10px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .score {
+                font-size: 1.2em;
+            }
+            
+            .credits {
+                position: relative;
+                bottom: auto;
+                right: auto;
+                margin-top: 20px;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 15px;
+            }
+            
+            .game-board {
+                gap: 8px;
+            }
+            
+            .card-back-logo {
+                font-size: 1.5em;
+            }
+            
+            .emoji-display {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">Boundless Berry Flip</h1>
+            <div class="score">🍓 Score: <span id="score">0</span></div>
+            <div class="stats">
+                <span>🎯 Need: <span id="berriesNeeded">3</span></span>
+                <span>⚡ Found: <span id="berriesFound">0</span></span>
+                <span>❌ Mistakes: <span id="mistakes">0</span></span>
+            </div>
+        </div>
+        
+        <div class="game-board" id="gameBoard">
+            <!-- Cards will be generated by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="credits">
+        <img src="assets/IKqeOzIw_400x400.jpg" alt="@0xShyron" onerror="this.style.display='none'">
+        Made by - <a href="https://x.com/0xShyron" target="_blank">@0xShyron</a>
+    </div>
+    
+    <script>
+        // Game Configuration - MODERATE DIFFICULTY
+        const TOTAL_CARDS = 6;        // Keep at 6 cards
+        const WIN_BERRIES = 3;        // Keep at 3 berries
+        const MAX_MISTAKES = 2;       // Only 2 mistakes allowed
+        const FLIP_BACK_DELAY = 700;  // Faster flip back
+        const IMAGES = [
+            'assets/red-berry-isolated-on-white-background-generative-ai-photo.jpg',      // Winning image
+            'assets/f3QQ07mp_400x400.jpg',
+            'assets/hv_8hwMS_400x400.jpg',
+            'assets/image.png',
+            'assets/IKqeOzIw_400x400.jpg' // Your profile image 
+        ];
+        
+        // Emoji fallbacks for when images don't load
+        const EMOJI_FALLBACKS = {
+            'red-berry-isolated-on-white-background-generative-ai-photo.jpg': '🍓',
+            'f3QQ07mp_400x400.jpg': '🐧',
+            'image.png': '🌈',
+            'hv_8hwMS_400x400.jpg': '🥷',
+            'IKqeOzIw_400x400.jpg': '👨‍💻'
+        };
+        
+        // Game State
+        let gameState = {
+            score: 0,
+            cards: [],
+            flippedCards: [],
+            berriesFound: 0,
+            gameActive: true,
+            consecutiveBerries: 0,
+            mistakes: 0,
+            totalMistakes: 0
+        };
+        
+        // Initialize the game
+        function initGame() {
+            loadScore();
+            createFallingBerries();
+            setupGameBoard();
+            updateDisplay();
+        }
+        
+        // Load score from memory
+        function loadScore() {
+            // Score resets each session in Claude.ai environment
+        }
+        
+        // Save score to memory
+        function saveScore() {
+            // In a real environment, this would use localStorage
+        }
+        
+        // Create falling berry animation
+        function createFallingBerries() {
+            setInterval(() => {
+                const berry = document.createElement('div');
+                berry.className = 'falling-berry';
+                berry.style.left = Math.random() * 100 + '%';
+                berry.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(berry);
+                
+                setTimeout(() => {
+                    if (berry.parentNode) {
+                        berry.parentNode.removeChild(berry);
+                    }
+                }, 4000);
+            }, 600); // Increased frequency
+        }
+        
+        // Setup the game board
+        function setupGameBoard() {
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = '';
+            
+            // Create card deck: 3 berries + 3 other images
+            const cardDeck = [];
+            
+            // Add 3 winning berry cards
+            for (let i = 0; i < WIN_BERRIES; i++) {
+                cardDeck.push(IMAGES[0]);
+            }
+            
+            // Add other images to fill remaining slots
+            let otherImages = IMAGES.slice(1);
+            let remainingSlots = TOTAL_CARDS - WIN_BERRIES;
+            
+            for (let i = 0; i < remainingSlots; i++) {
+                cardDeck.push(otherImages[i % otherImages.length]);
+            }
+            
+            // Shuffle the deck
+            shuffleArray(cardDeck);
+            
+            // Reset game state
+            gameState.cards = [];
+            gameState.flippedCards = [];
+            gameState.berriesFound = 0;
+            gameState.consecutiveBerries = 0;
+            gameState.mistakes = 0;
+            gameState.gameActive = true;
+            
+            // Create cards
+            cardDeck.forEach((imagePath, index) => {
+                const card = createCard(imagePath, index);
+                gameBoard.appendChild(card);
+                gameState.cards.push({
+                    element: card,
+                    image: imagePath,
+                    flipped: false,
+                    id: index
+                });
+            });
+            
+            updateDisplay();
+        }
+        
+        // Shuffle array function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        // Reshuffle cards (punishment for too many mistakes)
+        function reshuffleCards() {
+            gameState.gameActive = false;
+            showReshuffleToast();
+            
+            // Get current card images
+            const currentImages = gameState.cards.map(card => card.image);
+            shuffleArray(currentImages);
+            
+            // Update cards with new positions
+            gameState.cards.forEach((card, index) => {
+                card.image = currentImages[index];
+                
+                const img = card.element.querySelector('.card-image');
+                const emojiDiv = card.element.querySelector('.emoji-display');
+                
+                if (img) {
+                    img.src = currentImages[index];
+                    img.style.display = 'block';
+                    
+                    if (emojiDiv) {
+                        emojiDiv.remove();
+                    }
+                    
+                    img.onerror = function() {
+                        const filename = currentImages[index].split('/').pop();
+                        const fallbackEmoji = EMOJI_FALLBACKS[filename] || '❓';
+                        
+                        img.style.display = 'none';
+                        
+                        const newEmojiDiv = document.createElement('div');
+                        newEmojiDiv.className = 'emoji-display';
+                        newEmojiDiv.textContent = fallbackEmoji;
+                        card.element.querySelector('.card-front').appendChild(newEmojiDiv);
+                    };
+                }
+            });
+            
+            // Reset counters
+            gameState.mistakes = 0;
+            gameState.consecutiveBerries = 0;
+            gameState.berriesFound = 0;
+            
+            setTimeout(() => {
+                gameState.gameActive = true;
+                updateDisplay();
+            }, 800);
+        }
+        
+        // Create individual card element
+        function createCard(imagePath, index) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.setAttribute('data-id', index);
+            
+            // Card back
+            const cardBack = document.createElement('div');
+            cardBack.className = 'card-face card-back';
+            
+            const logo = document.createElement('div');
+            logo.className = 'card-back-logo';
+            logo.textContent = '🂠';
+            cardBack.appendChild(logo);
+            
+            // Card front
+            const cardFront = document.createElement('div');
+            cardFront.className = 'card-face card-front';
+            
+            const img = document.createElement('img');
+            img.className = 'card-image';
+            img.src = imagePath;
+            img.alt = 'Card Image';
+            
+            // Handle image loading errors
+            img.onerror = function() {
+                const filename = imagePath.split('/').pop();
+                const fallbackEmoji = EMOJI_FALLBACKS[filename] || '❓';
+                
+                img.style.display = 'none';
+                
+                const emojiDiv = document.createElement('div');
+                emojiDiv.className = 'emoji-display';
+                emojiDiv.textContent = fallbackEmoji;
+                cardFront.appendChild(emojiDiv);
+            };
+            
+            cardFront.appendChild(img);
+            
+            // Add click event
+            card.addEventListener('click', () => handleCardClick(index));
+            
+            card.appendChild(cardBack);
+            card.appendChild(cardFront);
+            
+            return card;
+        }
+        
+        // Handle card click
+        function handleCardClick(cardId) {
+            if (!gameState.gameActive) return;
+            
+            const card = gameState.cards[cardId];
+            if (card.flipped) return;
+            
+            // Flip the card
+            card.element.classList.add('flipped');
+            card.flipped = true;
+            gameState.flippedCards.push(card);
+            
+            // Check if it's a berry
+            if (card.image === IMAGES[0]) {
+                gameState.berriesFound++;
+                gameState.consecutiveBerries++;
+                
+                // Check win condition
+                if (gameState.consecutiveBerries === WIN_BERRIES) {
+                    setTimeout(() => {
+                        showWinToast();
+                        gameState.score++;
+                        gameState.totalMistakes = 0;
+                        saveScore();
+                        
+                        setTimeout(() => {
+                            setupGameBoard();
+                            showReshuffleToast();
+                        }, 1500);
+                    }, 500);
+                }
+            } else {
+                // Wrong card - add shake animation
+                card.element.classList.add('wrong');
+                setTimeout(() => {
+                    card.element.classList.remove('wrong');
+                }, 500);
+                
+                gameState.mistakes++;
+                gameState.totalMistakes++;
+                
+                // Check if we need to reshuffle
+                if (gameState.mistakes >= MAX_MISTAKES) {
+                    gameState.gameActive = false;
+                    showWarningToast();
+                    setTimeout(() => {
+                        flipAllCardsBack();
+                        reshuffleCards();
+                    }, 1000);
+                    return;
+                } else {
+                    // Flip back faster and reset progress
+                    gameState.gameActive = false;
+                    setTimeout(() => {
+                        flipAllCardsBack();
+                        gameState.consecutiveBerries = 0;
+                        gameState.berriesFound = 0;
+                        gameState.gameActive = true;
+                        updateDisplay();
+                    }, FLIP_BACK_DELAY);
+                    return;
+                }
+            }
+            
+            updateDisplay();
+        }
+        
+        // Flip all cards back
+        function flipAllCardsBack() {
+            gameState.cards.forEach(card => {
+                if (card.flipped) {
+                    card.element.classList.remove('flipped');
+                    card.flipped = false;
+                }
+            });
+            gameState.flippedCards = [];
+        }
+        
+        // Show win toast
+        function showWinToast() {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = `🎉 Perfect! You found all ${WIN_BERRIES} berries!`;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 1500);
+        }
+        
+        // Show reshuffle toast
+        function showReshuffleToast() {
+            const toast = document.createElement('div');
+            toast.className = 'toast reshuffle';
+            toast.textContent = 'Cards Reshuffled! 🌪️';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 2000);
+        }
+        
+        // Show warning toast
+        function showWarningToast() {
+            const toast = document.createElement('div');
+            toast.className = 'toast warning';
+            toast.textContent = 'Too many mistakes! 💥';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 2000);
+        }
+        
+        // Update all displays
+        function updateDisplay() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('berriesNeeded').textContent = WIN_BERRIES;
+            document.getElementById('berriesFound').textContent = gameState.berriesFound;
+            document.getElementById('mistakes').textContent = gameState.mistakes;
+        }
+        
+        // Start the game
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
